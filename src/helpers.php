@@ -9,12 +9,70 @@ function e(?string $value): string
 
 function env(string $key, ?string $default = null): ?string
 {
-    $value = $_ENV[$key] ?? getenv($key);
-    if ($value === false || $value === null || $value === '') {
+    if (array_key_exists($key, $_ENV)) {
+        $value = $_ENV[$key];
+    } else {
+        $value = getenv($key);
+        if ($value === false) {
+            return $default;
+        }
+    }
+
+    if ($value === null) {
         return $default;
     }
 
     return (string) $value;
+}
+
+function load_dotenv(?string $path = null): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    $path ??= dirname(__DIR__) . '/.env';
+    if (!is_readable($path)) {
+        return;
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        if (!str_contains($line, '=')) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if ($key === '') {
+            continue;
+        }
+        if (
+            (str_starts_with($value, '"') && str_ends_with($value, '"'))
+            || (str_starts_with($value, "'") && str_ends_with($value, "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+        $_ENV[$key] = $value;
+        putenv($key . '=' . $value);
+    }
+}
+
+function request_host(): string
+{
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? '';
+    $host = strtolower(trim(explode(',', (string) $host)[0]));
+    return explode(':', $host)[0];
 }
 
 function base_path(): string
@@ -24,9 +82,25 @@ function base_path(): string
         return $base;
     }
 
-    $configured = env('BASE_PATH');
-    if ($configured !== null) {
-        $base = rtrim($configured, '/');
+    load_dotenv();
+
+    // Explicit override (empty string = app is at domain root).
+    if (array_key_exists('BASE_PATH', $_ENV)) {
+        $base = rtrim((string) $_ENV['BASE_PATH'], '/');
+        return $base;
+    }
+
+    $forwardedPrefix = $_SERVER['HTTP_X_FORWARDED_PREFIX'] ?? '';
+    if (is_string($forwardedPrefix) && $forwardedPrefix !== '') {
+        $base = rtrim($forwardedPrefix, '/');
+        return $base;
+    }
+
+    // Dedicated public hostname (e.g. wol.roste.org via NPM) → served at /.
+    $host = request_host();
+    $localHosts = ['web01', 'web01.dark.net', 'ubuntu01', 'ubuntu01.dark.net', 'localhost', '127.0.0.1', '10.0.2.55'];
+    if ($host !== '' && !in_array($host, $localHosts, true)) {
+        $base = '';
         return $base;
     }
 

@@ -27,7 +27,16 @@ Data (SQLite DB + settings) is stored in `./data` on the host and is shared by b
 | `WOL_BROADCAST` | `255.255.255.255` | UDP broadcast address for magic packets |
 | `DATA_DIR` | `/var/www/html/data` | Path inside the container for SQLite + settings |
 | `HTTP_PORT` | `9080` | Nginx listen port (host network / Docker) |
-| `BASE_PATH` | _(auto)_ | URL prefix; auto-detected as `/wol` under Apache |
+| `BASE_PATH` | _(auto)_ | URL prefix. Unset = auto. Empty = domain root (NPM subdomain). `/wol` for `http://web01/wol` |
+
+### Reverse proxy (NPMPlus)
+
+Preferred: point the proxy host at the Docker app (no path):
+
+- **Forward Hostname / IP:** `10.0.2.55` (not `10.0.2.55/wol/`)
+- **Forward Port:** `9080`
+
+If you instead forward to Apache `10.0.2.55:80/wol/`, the app treats non-local hosts (e.g. `wol.roste.org`) as domain-root and emits `/assets/...` links so CSS loads. `http://web01/wol` still uses the `/wol` prefix.
 
 The container uses `network_mode: host` and `cap_add: [NET_RAW]` so ICMP ping and WOL UDP broadcasts work. Host Apache uses the same PHP app via `.htaccess` rewriting into `public/`.
 
