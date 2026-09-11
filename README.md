@@ -12,12 +12,27 @@ Simple PHP app to monitor LAN devices and send Wake-on-LAN magic packets.
 ```bash
 cp .env.example .env
 # optional: set APP_PASSWORD=... in .env
-docker compose up --build -d
+docker compose up -d
 ```
+
+This pulls [`darknetz/php-wol`](https://hub.docker.com/r/darknetz/php-wol) (`latest`). To rebuild from source instead: `docker compose up --build -d`.
 
 Open [http://localhost:9080](http://localhost:9080) (Docker) or [http://web01/wol](http://web01/wol) when served by the host Apache under `/var/www/html/wol`.
 
 Data (SQLite DB + settings) is stored in `./data` on the host and is shared by both entrypoints.
+
+### Image tags
+
+| Tag | Description |
+|---|---|
+| `latest` | Latest release |
+| `2.1.0` | Specific version |
+
+```bash
+docker pull darknetz/php-wol:2.1.0
+```
+
+Maintainers: publish a new version locally with `./scripts/docker-publish.sh <version>` (requires Docker Hub login as `darknetz`).
 
 ## Configuration
 

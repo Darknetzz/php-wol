@@ -1,5 +1,6 @@
 services:
   wol:
+    image: darknetz/php-wol:latest
     build: .
     network_mode: host
     env_file: .env
