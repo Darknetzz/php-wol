@@ -10,10 +10,26 @@
     return base + path;
   }
 
-  function refreshIcons() {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
+  function refreshIcons(root) {
+    if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
+      return;
     }
+    var scope = root || document;
+    // Only convert fresh <i data-lucide> placeholders. Rendered SVGs keep
+    // data-lucide, and re-running createIcons on them mutates the open modal
+    // and lets Bootstrap's focus trap steal focus from the hostname field.
+    if (!scope.querySelector('i[data-lucide]')) {
+      return;
+    }
+    var restored = [];
+    Array.prototype.forEach.call(document.querySelectorAll('svg[data-lucide]'), function (svg) {
+      restored.push([svg, svg.getAttribute('data-lucide')]);
+      svg.removeAttribute('data-lucide');
+    });
+    window.lucide.createIcons();
+    restored.forEach(function (pair) {
+      pair[0].setAttribute('data-lucide', pair[1]);
+    });
   }
 
   function iconMarkup(name) {
@@ -288,10 +304,6 @@
       hostModal = new bootstrap.Modal(document.getElementById('host-modal'));
     }
     hostModal.show();
-    refreshIcons();
-    setTimeout(function () {
-      $('#host-hostname').trigger('focus');
-    }, 200);
   }
 
   function openEditById(id) {
@@ -400,6 +412,13 @@
   }
 
   $(function () {
+    $('#host-modal').on('shown.bs.modal', function () {
+      var input = document.getElementById('host-hostname');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
     refreshIcons();
     applySort();
     updateAll();
