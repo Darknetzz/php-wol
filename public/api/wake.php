@@ -14,6 +14,13 @@ if ($computer === null) {
     exit;
 }
 
-$result = wol_send($computer['mac']);
+$mac = $computer['mac'] !== null ? trim((string) $computer['mac']) : '';
+if ($mac === '') {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'message' => 'No MAC address configured — Wake-on-LAN is disabled for this host.']);
+    exit;
+}
+
+$result = wol_send($mac);
 http_response_code($result['ok'] ? 200 : 500);
 echo json_encode($result);

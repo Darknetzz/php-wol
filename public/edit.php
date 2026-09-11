@@ -16,28 +16,32 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    $hostname = trim((string) ($_POST['hostname'] ?? ''));
-    $ip = normalize_ip(trim((string) ($_POST['ip'] ?? '')));
-    $mac = normalize_mac(trim((string) ($_POST['mac'] ?? '')));
+    $parsed = computer_parse_input($_POST);
 
-    if ($hostname === '' || $ip === null || $mac === null) {
-        $error = 'Hostname, a valid IP, and a valid MAC address are required.';
+    if (!$parsed['ok']) {
+        $error = $parsed['error'];
+        $computer = array_merge($computer, [
+            'hostname' => trim((string) ($_POST['hostname'] ?? '')),
+            'ip' => trim((string) ($_POST['ip'] ?? '')),
+            'mac' => trim((string) ($_POST['mac'] ?? '')),
+        ]);
     } else {
         try {
-            computer_update($id, $hostname, $ip, $mac);
-            flash_set('success', "Computer {$hostname} updated.");
+            computer_update($id, $parsed['hostname'], $parsed['ip'], $parsed['mac']);
+            flash_set('success', "Computer {$parsed['hostname']} updated.");
             redirect('/edit.php?id=' . $id);
         } catch (PDOException $e) {
             $error = 'IP or MAC address already exists.';
+            $computer = array_merge($computer, [
+                'hostname' => trim((string) ($_POST['hostname'] ?? '')),
+                'ip' => trim((string) ($_POST['ip'] ?? '')),
+                'mac' => trim((string) ($_POST['mac'] ?? '')),
+            ]);
         }
     }
-
-    $computer = array_merge($computer, [
-        'hostname' => $hostname,
-        'ip' => (string) ($_POST['ip'] ?? ''),
-        'mac' => (string) ($_POST['mac'] ?? ''),
-    ]);
 }
+
+$public = computer_public($computer);
 
 render_header('Edit device');
 ?>
@@ -51,15 +55,17 @@ render_header('Edit device');
     <?= csrf_field() ?>
     <div class="mb-3">
         <label class="form-label" for="hostname">Hostname</label>
-        <input class="form-control" type="text" name="hostname" id="hostname" required value="<?= e($computer['hostname']) ?>">
+        <input class="form-control" type="text" name="hostname" id="hostname" required value="<?= e($public['hostname']) ?>">
     </div>
     <div class="mb-3">
-        <label class="form-label" for="ip">IP</label>
-        <input class="form-control" type="text" name="ip" id="ip" required value="<?= e($computer['ip']) ?>">
+        <label class="form-label" for="ip">IP <span class="text-body-secondary fw-normal">(optional)</span></label>
+        <input class="form-control" type="text" name="ip" id="ip" value="<?= e($public['ip']) ?>" placeholder="Leave empty to resolve from hostname">
+        <div class="form-text">If empty, ping will try to resolve the hostname via DNS.</div>
     </div>
     <div class="mb-3">
-        <label class="form-label" for="mac">MAC address</label>
-        <input class="form-control" type="text" name="mac" id="mac" required value="<?= e($computer['mac']) ?>">
+        <label class="form-label" for="mac">MAC address <span class="text-body-secondary fw-normal">(optional)</span></label>
+        <input class="form-control" type="text" name="mac" id="mac" value="<?= e($public['mac']) ?>" placeholder="AA:BB:CC:DD:EE:FF">
+        <div class="form-text">If empty, Wake-on-LAN is disabled (ping only).</div>
     </div>
     <div class="d-flex flex-wrap gap-2">
         <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1"><?= icon('save') ?> Save</button>

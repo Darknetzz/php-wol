@@ -15,11 +15,30 @@ if ($computer === null) {
 }
 
 $settings = settings_get();
-$result = ping_host($computer['ip'], !empty($settings['VerbosePing']));
+$storedIp = $computer['ip'] !== null && $computer['ip'] !== '' ? (string) $computer['ip'] : null;
+$target = resolve_ping_target($storedIp, (string) $computer['hostname']);
+
+if ($target === null) {
+    echo json_encode([
+        'id' => $id,
+        'online' => false,
+        'label' => 'No IP',
+        'detail' => 'No IP configured and hostname could not be resolved.',
+        'ip' => '',
+        'resolved' => false,
+        'ping' => false,
+    ]);
+    exit;
+}
+
+$result = ping_host($target, !empty($settings['VerbosePing']));
 
 echo json_encode([
     'id' => $id,
     'online' => $result['online'],
     'label' => $result['label'],
     'detail' => $result['detail'],
+    'ip' => $target,
+    'resolved' => $storedIp === null,
+    'ping' => true,
 ]);

@@ -24,7 +24,10 @@ render_header('Delete device');
 
 <div class="alert alert-danger d-flex align-items-center gap-2">
     <?= icon('triangle-alert') ?>
-    <span>Delete <strong><?= e($computer['hostname']) ?></strong> (<?= e($computer['ip']) ?>)?</span>
+    <span>Delete <strong><?= e($computer['hostname']) ?></strong><?php
+        $ip = $computer['ip'] !== null && $computer['ip'] !== '' ? (string) $computer['ip'] : '';
+        echo $ip !== '' ? ' (' . e($ip) . ')' : '';
+    ?>?</span>
 </div>
 
 <form method="post" class="d-flex gap-2">

@@ -5,20 +5,28 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/bootstrap.php';
 
 $error = null;
+$values = [
+    'hostname' => '',
+    'ip' => '',
+    'mac' => '',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    $hostname = trim((string) ($_POST['hostname'] ?? ''));
-    $ip = normalize_ip(trim((string) ($_POST['ip'] ?? '')));
-    $mac = normalize_mac(trim((string) ($_POST['mac'] ?? '')));
+    $values = [
+        'hostname' => trim((string) ($_POST['hostname'] ?? '')),
+        'ip' => trim((string) ($_POST['ip'] ?? '')),
+        'mac' => trim((string) ($_POST['mac'] ?? '')),
+    ];
+    $parsed = computer_parse_input($_POST);
 
-    if ($hostname === '' || $ip === null || $mac === null) {
-        $error = 'Hostname, a valid IP, and a valid MAC address are required.';
+    if (!$parsed['ok']) {
+        $error = $parsed['error'];
     } else {
         try {
-            computer_create($hostname, $ip, $mac);
-            flash_set('success', "Computer {$hostname} created.");
+            computer_create($parsed['hostname'], $parsed['ip'], $parsed['mac']);
+            flash_set('success', "Computer {$parsed['hostname']} created.");
             redirect('/index.php');
         } catch (PDOException $e) {
             $error = 'IP or MAC address already exists.';
@@ -38,15 +46,17 @@ render_header('Add device');
     <?= csrf_field() ?>
     <div class="mb-3">
         <label class="form-label" for="hostname">Hostname</label>
-        <input class="form-control" type="text" name="hostname" id="hostname" required value="<?= e($_POST['hostname'] ?? '') ?>">
+        <input class="form-control" type="text" name="hostname" id="hostname" required value="<?= e($values['hostname']) ?>">
     </div>
     <div class="mb-3">
-        <label class="form-label" for="ip">IP</label>
-        <input class="form-control" type="text" name="ip" id="ip" required value="<?= e($_POST['ip'] ?? '') ?>">
+        <label class="form-label" for="ip">IP <span class="text-body-secondary fw-normal">(optional)</span></label>
+        <input class="form-control" type="text" name="ip" id="ip" value="<?= e($values['ip']) ?>" placeholder="Leave empty to resolve from hostname">
+        <div class="form-text">If empty, ping will try to resolve the hostname via DNS.</div>
     </div>
     <div class="mb-3">
-        <label class="form-label" for="mac">MAC address</label>
-        <input class="form-control" type="text" name="mac" id="mac" required placeholder="AA:BB:CC:DD:EE:FF" value="<?= e($_POST['mac'] ?? '') ?>">
+        <label class="form-label" for="mac">MAC address <span class="text-body-secondary fw-normal">(optional)</span></label>
+        <input class="form-control" type="text" name="mac" id="mac" placeholder="AA:BB:CC:DD:EE:FF" value="<?= e($values['mac']) ?>">
+        <div class="form-text">If empty, Wake-on-LAN is disabled (ping only).</div>
     </div>
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1"><?= icon('save') ?> Save</button>

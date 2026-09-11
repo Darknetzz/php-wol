@@ -28,10 +28,43 @@ function migrate(PDO $pdo): void
         'CREATE TABLE IF NOT EXISTS computers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             hostname TEXT NOT NULL,
-            ip TEXT NOT NULL UNIQUE,
-            mac TEXT NOT NULL UNIQUE
+            ip TEXT UNIQUE,
+            mac TEXT UNIQUE
         )'
     );
+
+    // Older installs used NOT NULL on ip/mac — rebuild so empties can be stored as NULL.
+    $cols = $pdo->query('PRAGMA table_info(computers)')->fetchAll();
+    $needsRelax = false;
+    foreach ($cols as $col) {
+        if (in_array($col['name'], ['ip', 'mac'], true) && (int) $col['notnull'] === 1) {
+            $needsRelax = true;
+            break;
+        }
+    }
+    if (!$needsRelax) {
+        return;
+    }
+
+    $pdo->exec('BEGIN');
+    $pdo->exec(
+        'CREATE TABLE computers__new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hostname TEXT NOT NULL,
+            ip TEXT UNIQUE,
+            mac TEXT UNIQUE
+        )'
+    );
+    $pdo->exec(
+        "INSERT INTO computers__new (id, hostname, ip, mac)
+         SELECT id, hostname,
+           CASE WHEN ip IS NULL OR trim(ip) = '' THEN NULL ELSE ip END,
+           CASE WHEN mac IS NULL OR trim(mac) = '' THEN NULL ELSE mac END
+         FROM computers"
+    );
+    $pdo->exec('DROP TABLE computers');
+    $pdo->exec('ALTER TABLE computers__new RENAME TO computers');
+    $pdo->exec('COMMIT');
 }
 
 function computers_all(): array
@@ -48,15 +81,17 @@ function computer_find(int $id): ?array
     return $row ?: null;
 }
 
-function computer_create(string $hostname, string $ip, string $mac): void
+function computer_create(string $hostname, ?string $ip, ?string $mac): int
 {
     $stmt = db()->prepare(
         'INSERT INTO computers (hostname, ip, mac) VALUES (?, ?, ?)'
     );
     $stmt->execute([$hostname, $ip, $mac]);
+
+    return (int) db()->lastInsertId();
 }
 
-function computer_update(int $id, string $hostname, string $ip, string $mac): void
+function computer_update(int $id, string $hostname, ?string $ip, ?string $mac): void
 {
     $stmt = db()->prepare(
         'UPDATE computers SET hostname = ?, ip = ?, mac = ? WHERE id = ?'

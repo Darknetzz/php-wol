@@ -34,8 +34,12 @@ function wol_send(string $mac, ?string $broadcast = null): array
     ];
 }
 
-function ping_host(string $ip, bool $verbose = false): array
+function ping_host(?string $ip, bool $verbose = false): array
 {
+    if ($ip === null || $ip === '') {
+        return ['online' => false, 'label' => 'No IP', 'detail' => 'No IP configured and hostname could not be resolved.'];
+    }
+
     if (!normalize_ip($ip)) {
         return ['online' => false, 'label' => 'Error', 'detail' => 'Invalid IP'];
     }

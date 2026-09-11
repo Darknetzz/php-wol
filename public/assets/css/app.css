@@ -37,6 +37,48 @@ th .lucide-icon {
   margin-right: 0.25rem;
 }
 
+#computers-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+#computers-table thead th.sortable:hover {
+  color: var(--bs-primary);
+}
+
+#computers-table thead th.sortable .sort-indicator::after {
+  content: '↕';
+  display: inline-block;
+  margin-left: 0.35rem;
+  opacity: 0.35;
+  font-size: 0.75em;
+}
+
+#computers-table thead th.sortable.sort-asc .sort-indicator::after {
+  content: '↑';
+  opacity: 0.9;
+}
+
+#computers-table thead th.sortable.sort-desc .sort-indicator::after {
+  content: '↓';
+  opacity: 0.9;
+}
+
+.host-edit-link {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.host-edit-link:hover {
+  text-decoration: underline;
+}
+
+#host-modal .modal-title .lucide-icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+
 @keyframes lucide-spin {
   to {
     transform: rotate(360deg);

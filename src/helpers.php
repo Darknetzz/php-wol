@@ -237,7 +237,10 @@ function render_footer(bool $withAppJs = false): void
 {
     ?>
 </main>
-<script>window.WOL_BASE = <?= json_encode(base_path(), JSON_UNESCAPED_SLASHES) ?>;</script>
+<script>
+  window.WOL_BASE = <?= json_encode(base_path(), JSON_UNESCAPED_SLASHES) ?>;
+  window.WOL_CSRF = <?= json_encode(csrf_token(), JSON_UNESCAPED_SLASHES) ?>;
+</script>
 <script src="<?= e(url('/assets/js/jquery.min.js')) ?>"></script>
 <script src="<?= e(url('/assets/js/bootstrap.bundle.min.js')) ?>"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -267,4 +270,102 @@ function normalize_mac(string $mac): ?string
 function normalize_ip(string $ip): ?string
 {
     return filter_var($ip, FILTER_VALIDATE_IP) ?: null;
+}
+
+/**
+ * Parse host form input. Empty IP/MAC are allowed (stored as null).
+ *
+ * @return array{ok: bool, error: ?string, hostname: string, ip: ?string, mac: ?string}
+ */
+function computer_parse_input(array $input): array
+{
+    $hostname = trim((string) ($input['hostname'] ?? ''));
+    $ipRaw = trim((string) ($input['ip'] ?? ''));
+    $macRaw = trim((string) ($input['mac'] ?? ''));
+
+    if ($hostname === '') {
+        return [
+            'ok' => false,
+            'error' => 'Hostname is required.',
+            'hostname' => $hostname,
+            'ip' => null,
+            'mac' => null,
+        ];
+    }
+
+    $ip = null;
+    if ($ipRaw !== '') {
+        $ip = normalize_ip($ipRaw);
+        if ($ip === null) {
+            return [
+                'ok' => false,
+                'error' => 'IP address is invalid.',
+                'hostname' => $hostname,
+                'ip' => null,
+                'mac' => null,
+            ];
+        }
+    }
+
+    $mac = null;
+    if ($macRaw !== '') {
+        $mac = normalize_mac($macRaw);
+        if ($mac === null) {
+            return [
+                'ok' => false,
+                'error' => 'MAC address is invalid.',
+                'hostname' => $hostname,
+                'ip' => null,
+                'mac' => null,
+            ];
+        }
+    }
+
+    return [
+        'ok' => true,
+        'error' => null,
+        'hostname' => $hostname,
+        'ip' => $ip,
+        'mac' => $mac,
+    ];
+}
+
+/** Resolve an address to ping: stored IP, otherwise DNS from hostname. */
+function resolve_ping_target(?string $ip, string $hostname): ?string
+{
+    $ip = $ip !== null ? trim($ip) : '';
+    if ($ip !== '') {
+        return normalize_ip($ip);
+    }
+
+    $hostname = trim($hostname);
+    if ($hostname === '' || normalize_ip($hostname) !== null) {
+        return $hostname !== '' ? normalize_ip($hostname) : null;
+    }
+
+    $resolved = gethostbyname($hostname);
+    if ($resolved !== $hostname && filter_var($resolved, FILTER_VALIDATE_IP)) {
+        return $resolved;
+    }
+
+    $records = @dns_get_record($hostname, DNS_A);
+    if (is_array($records)) {
+        foreach ($records as $record) {
+            if (!empty($record['ip']) && filter_var($record['ip'], FILTER_VALIDATE_IP)) {
+                return $record['ip'];
+            }
+        }
+    }
+
+    return null;
+}
+
+function computer_public(array $row): array
+{
+    return [
+        'id' => (int) $row['id'],
+        'hostname' => (string) $row['hostname'],
+        'ip' => $row['ip'] !== null && $row['ip'] !== '' ? (string) $row['ip'] : '',
+        'mac' => $row['mac'] !== null && $row['mac'] !== '' ? (string) $row['mac'] : '',
+    ];
 }

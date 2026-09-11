@@ -32,10 +32,10 @@ render_header();
             <?= icon('refresh-cw') ?>
             Update
         </button>
-        <a href="<?= e(url('/add.php')) ?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+        <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" id="btn-new-device">
             <?= icon('plus') ?>
             New device
-        </a>
+        </button>
     </div>
 </div>
 
@@ -61,27 +61,53 @@ render_header();
     <table class="table table-hover align-middle" id="computers-table">
         <thead>
             <tr>
-                <th><?= icon('monitor') ?> Hostname</th>
-                <th><?= icon('network') ?> IP</th>
-                <th><?= icon('fingerprint') ?> MAC</th>
-                <th><?= icon('radio') ?> Status</th>
+                <th class="sortable" data-sort="hostname" data-type="text" scope="col" role="button" tabindex="0">
+                    <?= icon('monitor') ?> Hostname <span class="sort-indicator" aria-hidden="true"></span>
+                </th>
+                <th class="sortable" data-sort="ip" data-type="text" scope="col" role="button" tabindex="0">
+                    <?= icon('network') ?> IP <span class="sort-indicator" aria-hidden="true"></span>
+                </th>
+                <th class="sortable" data-sort="mac" data-type="text" scope="col" role="button" tabindex="0">
+                    <?= icon('fingerprint') ?> MAC <span class="sort-indicator" aria-hidden="true"></span>
+                </th>
+                <th class="sortable" data-sort="status" data-type="text" scope="col" role="button" tabindex="0">
+                    <?= icon('radio') ?> Status <span class="sort-indicator" aria-hidden="true"></span>
+                </th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
         <?php if ($computers === []): ?>
-            <tr>
-                <td colspan="5" class="text-body-secondary">No devices yet. <a href="<?= e(url('/add.php')) ?>">Add one</a>.</td>
+            <tr class="empty-row">
+                <td colspan="5" class="text-body-secondary">No devices yet. Click <strong>New device</strong> to add one.</td>
             </tr>
         <?php else: ?>
             <?php foreach ($computers as $row): ?>
-                <tr data-id="<?= (int) $row['id'] ?>">
-                    <td><a href="<?= e(url('/edit.php?id=' . (int) $row['id'])) ?>"><?= e($row['hostname']) ?></a></td>
-                    <td><?= e($row['ip']) ?></td>
-                    <td><code><?= e($row['mac']) ?></code></td>
-                    <td id="status-<?= (int) $row['id'] ?>" class="status-cell">…</td>
+                <?php
+                $public = computer_public($row);
+                $hasMac = $public['mac'] !== '';
+                ?>
+                <tr
+                    data-id="<?= (int) $public['id'] ?>"
+                    data-hostname="<?= e($public['hostname']) ?>"
+                    data-ip="<?= e($public['ip']) ?>"
+                    data-mac="<?= e($public['mac']) ?>"
+                >
+                    <td>
+                        <button type="button" class="btn btn-link p-0 host-edit-link" data-id="<?= (int) $public['id'] ?>">
+                            <?= e($public['hostname']) ?>
+                        </button>
+                    </td>
+                    <td class="host-ip"><?= $public['ip'] !== '' ? e($public['ip']) : '<span class="text-body-secondary">—</span>' ?></td>
+                    <td class="host-mac"><?= $public['mac'] !== '' ? '<code>' . e($public['mac']) . '</code>' : '<span class="text-body-secondary">—</span>' ?></td>
+                    <td id="status-<?= (int) $public['id'] ?>" class="status-cell" data-status-label="">…</td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-secondary btn-wake d-inline-flex align-items-center gap-1" data-id="<?= (int) $row['id'] ?>">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-secondary btn-wake d-inline-flex align-items-center gap-1"
+                            data-id="<?= (int) $public['id'] ?>"
+                            <?= $hasMac ? '' : 'disabled title="No MAC address — Wake-on-LAN disabled"' ?>
+                        >
                             <?= icon('power') ?>
                             Wake
                         </button>
@@ -91,6 +117,52 @@ render_header();
         <?php endif; ?>
         </tbody>
     </table>
+</div>
+
+<div class="modal fade" id="host-modal" tabindex="-1" aria-labelledby="host-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="host-form">
+            <div class="modal-header">
+                <h2 class="modal-title h5 d-inline-flex align-items-center gap-2" id="host-modal-title">
+                    <?= icon('pencil') ?>
+                    <span id="host-modal-heading">Edit device</span>
+                </h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="host-modal-error" class="alert alert-danger d-none d-flex align-items-center gap-2" role="alert">
+                    <?= icon('circle-alert') ?>
+                    <span></span>
+                </div>
+                <input type="hidden" name="id" id="host-id" value="">
+                <div class="mb-3">
+                    <label class="form-label" for="host-hostname">Hostname</label>
+                    <input class="form-control" type="text" name="hostname" id="host-hostname" required autocomplete="off">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="host-ip">IP <span class="text-body-secondary fw-normal">(optional)</span></label>
+                    <input class="form-control" type="text" name="ip" id="host-ip" placeholder="Leave empty to resolve from hostname" autocomplete="off">
+                    <div class="form-text">If empty, ping will try to resolve the hostname via DNS.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="host-mac">MAC address <span class="text-body-secondary fw-normal">(optional)</span></label>
+                    <input class="form-control" type="text" name="mac" id="host-mac" placeholder="AA:BB:CC:DD:EE:FF" autocomplete="off">
+                    <div class="form-text">If empty, Wake-on-LAN is disabled (ping only).</div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-danger d-inline-flex align-items-center gap-1" id="host-delete-btn">
+                    <?= icon('trash-2') ?> Delete
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                        <?= icon('save') ?> Save
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 <?php
 render_footer(true);
