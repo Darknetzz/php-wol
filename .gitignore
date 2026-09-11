@@ -1,1 +1,11 @@
-sqlcon.php
+# Env and secrets
+.env
+
+# Runtime data
+/data/*
+!/data/.gitkeep
+
+# Editor / OS
+.DS_Store
+*.swp
+*~

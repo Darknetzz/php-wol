@@ -1,0 +1,17 @@
+body {
+  min-height: 100vh;
+}
+
+.mw-form {
+  max-width: 28rem;
+}
+
+.status-detail {
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  max-width: 28rem;
+}
+
+code {
+  font-size: 0.875em;
+}

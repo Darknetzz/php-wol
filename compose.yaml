@@ -1,0 +1,9 @@
+services:
+  wol:
+    build: .
+    network_mode: host
+    env_file: .env
+    volumes:
+      - ./data:/var/www/html/data
+    cap_add:
+      - NET_RAW
