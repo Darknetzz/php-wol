@@ -15,9 +15,9 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Open [http://localhost:9080](http://localhost:9080).
+Open [http://localhost:9080](http://localhost:9080) (Docker) or [http://web01/wol](http://web01/wol) when served by the host Apache under `/var/www/html/wol`.
 
-Data (SQLite DB + settings) is stored in `./data` on the host.
+Data (SQLite DB + settings) is stored in `./data` on the host and is shared by both entrypoints.
 
 ## Configuration
 
@@ -26,9 +26,10 @@ Data (SQLite DB + settings) is stored in `./data` on the host.
 | `APP_PASSWORD` | _(empty)_ | If set, requires login. Leave empty for LAN-only trust. |
 | `WOL_BROADCAST` | `255.255.255.255` | UDP broadcast address for magic packets |
 | `DATA_DIR` | `/var/www/html/data` | Path inside the container for SQLite + settings |
-| `HTTP_PORT` | `9080` | Nginx listen port (host network) |
+| `HTTP_PORT` | `9080` | Nginx listen port (host network / Docker) |
+| `BASE_PATH` | _(auto)_ | URL prefix; auto-detected as `/wol` under Apache |
 
-The container uses `network_mode: host` and `cap_add: [NET_RAW]` so ICMP ping and WOL UDP broadcasts work.
+The container uses `network_mode: host` and `cap_add: [NET_RAW]` so ICMP ping and WOL UDP broadcasts work. Host Apache uses the same PHP app via `.htaccess` rewriting into `public/`.
 
 ## Stack
 

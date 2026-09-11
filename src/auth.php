@@ -63,7 +63,7 @@ function auth_require(): void
         return;
     }
 
-    if (str_starts_with($_SERVER['SCRIPT_NAME'] ?? '', '/api/')) {
+    if (str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/api/')) {
         http_response_code(401);
         header('Content-Type: application/json');
         echo json_encode(['error' => 'Unauthorized']);

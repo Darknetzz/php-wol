@@ -1,4 +1,12 @@
 (function ($) {
+  function baseUrl(path) {
+    var base = window.WOL_BASE || '';
+    if (path.charAt(0) !== '/') {
+      path = '/' + path;
+    }
+    return base + path;
+  }
+
   function setStatus(id, html) {
     $('#status-' + id).html(html);
   }
@@ -6,7 +14,7 @@
   function checkStatus(id) {
     setStatus(id, '<span class="text-body-secondary">Checking…</span>');
     return $.ajax({
-      url: '/api/status.php',
+      url: baseUrl('/api/status.php'),
       data: { id: id },
       dataType: 'json'
     }).done(function (data) {
@@ -31,7 +39,7 @@
     var $feedback = $('#wol-feedback');
     $feedback.html('<div class="alert alert-info mb-0">Sending magic packet…</div>');
     $.ajax({
-      url: '/api/wake.php',
+      url: baseUrl('/api/wake.php'),
       data: { id: id },
       dataType: 'json'
     }).done(function (data) {

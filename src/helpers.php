@@ -17,9 +17,50 @@ function env(string $key, ?string $default = null): ?string
     return (string) $value;
 }
 
+function base_path(): string
+{
+    static $base = null;
+    if ($base !== null) {
+        return $base;
+    }
+
+    $configured = env('BASE_PATH');
+    if ($configured !== null) {
+        $base = rtrim($configured, '/');
+        return $base;
+    }
+
+    $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (preg_match('#^(.*)/public/[^/]+$#', $script, $matches)) {
+        $base = $matches[1];
+        return $base;
+    }
+
+    $dir = dirname($script);
+    $base = ($dir === '/' || $dir === '\\' || $dir === '.') ? '' : rtrim($dir, '/');
+
+    return $base;
+}
+
+function url(string $path = '/'): string
+{
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    $path = '/' . ltrim($path, '/');
+    $prefix = base_path();
+
+    if ($path === '/') {
+        return $prefix !== '' ? $prefix . '/' : '/';
+    }
+
+    return $prefix . $path;
+}
+
 function data_dir(): string
 {
-    $dir = env('DATA_DIR', '/var/www/html/data');
+    $dir = env('DATA_DIR', dirname(__DIR__) . '/data');
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
     }
@@ -29,7 +70,7 @@ function data_dir(): string
 
 function redirect(string $path): never
 {
-    header('Location: ' . $path);
+    header('Location: ' . url($path));
     exit;
 }
 
@@ -84,15 +125,15 @@ function render_header(string $title = 'Wake-on-LAN'): void
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($title) ?></title>
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="<?= e(url('/assets/css/bootstrap.min.css')) ?>">
+    <link rel="stylesheet" href="<?= e(url('/assets/css/app.css')) ?>">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg border-bottom mb-4">
     <div class="container">
-        <a class="navbar-brand fw-semibold" href="/index.php">phpwol</a>
+        <a class="navbar-brand fw-semibold" href="<?= e(url('/index.php')) ?>">phpwol</a>
         <?php if (auth_required() && auth_check()): ?>
-            <a class="btn btn-sm btn-outline-secondary" href="/logout.php">Log out</a>
+            <a class="btn btn-sm btn-outline-secondary" href="<?= e(url('/logout.php')) ?>">Log out</a>
         <?php endif; ?>
     </div>
 </nav>
@@ -108,10 +149,11 @@ function render_footer(bool $withAppJs = false): void
 {
     ?>
 </main>
-<script src="/assets/js/jquery.min.js"></script>
-<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script>window.WOL_BASE = <?= json_encode(base_path(), JSON_UNESCAPED_SLASHES) ?>;</script>
+<script src="<?= e(url('/assets/js/jquery.min.js')) ?>"></script>
+<script src="<?= e(url('/assets/js/bootstrap.bundle.min.js')) ?>"></script>
 <?php if ($withAppJs): ?>
-<script src="/assets/js/app.js"></script>
+<script src="<?= e(url('/assets/js/app.js')) ?>"></script>
 <?php endif; ?>
 </body>
 </html>

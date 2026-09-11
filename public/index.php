@@ -26,7 +26,7 @@ render_header();
     </div>
     <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-update-all">Update</button>
-        <a href="/add.php" class="btn btn-primary btn-sm">New device</a>
+        <a href="<?= e(url('/add.php')) ?>" class="btn btn-primary btn-sm">New device</a>
     </div>
 </div>
 
@@ -62,12 +62,12 @@ render_header();
         <tbody>
         <?php if ($computers === []): ?>
             <tr>
-                <td colspan="5" class="text-body-secondary">No devices yet. <a href="/add.php">Add one</a>.</td>
+                <td colspan="5" class="text-body-secondary">No devices yet. <a href="<?= e(url('/add.php')) ?>">Add one</a>.</td>
             </tr>
         <?php else: ?>
             <?php foreach ($computers as $row): ?>
                 <tr data-id="<?= (int) $row['id'] ?>">
-                    <td><a href="/edit.php?id=<?= (int) $row['id'] ?>"><?= e($row['hostname']) ?></a></td>
+                    <td><a href="<?= e(url('/edit.php?id=' . (int) $row['id'])) ?>"><?= e($row['hostname']) ?></a></td>
                     <td><?= e($row['ip']) ?></td>
                     <td><code><?= e($row['mac']) ?></code></td>
                     <td id="status-<?= (int) $row['id'] ?>" class="status-cell">…</td>

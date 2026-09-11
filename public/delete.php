@@ -29,7 +29,7 @@ render_header('Delete device');
 <form method="post" class="d-flex gap-2">
     <?= csrf_field() ?>
     <button type="submit" class="btn btn-danger">Confirm delete</button>
-    <a href="/edit.php?id=<?= (int) $computer['id'] ?>" class="btn btn-outline-secondary">Cancel</a>
+    <a href="<?= e(url('/edit.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-secondary">Cancel</a>
 </form>
 <?php
 render_footer();

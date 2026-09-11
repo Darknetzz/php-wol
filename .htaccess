@@ -1,0 +1,12 @@
+DirectoryIndex index.php
+RewriteEngine On
+RewriteBase /wol/
+
+# Block sensitive paths
+RewriteRule ^(src|data|docker)(/|$) - [F,L]
+RewriteRule ^(\.env|\.git) - [F,L]
+
+# Map /wol/... into public/
+RewriteRule ^$ public/index.php [L]
+RewriteCond %{REQUEST_URI} !^/wol/public/
+RewriteRule ^(.*)$ public/$1 [L]

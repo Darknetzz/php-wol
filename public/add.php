@@ -50,7 +50,7 @@ render_header('Add device');
     </div>
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">Save</button>
-        <a href="/index.php" class="btn btn-outline-secondary">Back</a>
+        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary">Back</a>
     </div>
 </form>
 <?php

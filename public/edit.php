@@ -63,8 +63,8 @@ render_header('Edit device');
     </div>
     <div class="d-flex flex-wrap gap-2">
         <button type="submit" class="btn btn-primary">Save</button>
-        <a href="/index.php" class="btn btn-outline-secondary">Back</a>
-        <a href="/delete.php?id=<?= (int) $computer['id'] ?>" class="btn btn-outline-danger ms-auto">Delete</a>
+        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary">Back</a>
+        <a href="<?= e(url('/delete.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-danger ms-auto">Delete</a>
     </div>
 </form>
 <?php
