@@ -41,10 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 render_header('Edit device');
 ?>
-<h1 class="h3 mb-3">Edit device</h1>
+<h1 class="h3 mb-3 d-inline-flex align-items-center gap-2"><?= icon('pencil') ?> Edit device</h1>
 
 <?php if ($error): ?>
-    <div class="alert alert-danger"><?= e($error) ?></div>
+    <div class="alert alert-danger d-flex align-items-center gap-2"><?= icon('circle-alert') ?> <span><?= e($error) ?></span></div>
 <?php endif; ?>
 
 <form method="post" class="mw-form">
@@ -62,9 +62,9 @@ render_header('Edit device');
         <input class="form-control" type="text" name="mac" id="mac" required value="<?= e($computer['mac']) ?>">
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary">Back</a>
-        <a href="<?= e(url('/delete.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-danger ms-auto">Delete</a>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1"><?= icon('save') ?> Save</button>
+        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1"><?= icon('arrow-left') ?> Back</a>
+        <a href="<?= e(url('/delete.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-danger ms-auto d-inline-flex align-items-center gap-1"><?= icon('trash-2') ?> Delete</a>
     </div>
 </form>
 <?php

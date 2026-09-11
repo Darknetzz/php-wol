@@ -28,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 render_header('Add device');
 ?>
-<h1 class="h3 mb-3">New device</h1>
+<h1 class="h3 mb-3 d-inline-flex align-items-center gap-2"><?= icon('plus-circle') ?> New device</h1>
 
 <?php if ($error): ?>
-    <div class="alert alert-danger"><?= e($error) ?></div>
+    <div class="alert alert-danger d-flex align-items-center gap-2"><?= icon('circle-alert') ?> <span><?= e($error) ?></span></div>
 <?php endif; ?>
 
 <form method="post" class="mw-form">
@@ -49,8 +49,8 @@ render_header('Add device');
         <input class="form-control" type="text" name="mac" id="mac" required placeholder="AA:BB:CC:DD:EE:FF" value="<?= e($_POST['mac'] ?? '') ?>">
     </div>
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary">Back</a>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1"><?= icon('save') ?> Save</button>
+        <a href="<?= e(url('/index.php')) ?>" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1"><?= icon('arrow-left') ?> Back</a>
     </div>
 </form>
 <?php

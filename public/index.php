@@ -21,24 +21,33 @@ render_header();
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
     <div>
-        <h1 class="h3 mb-1">Wake on LAN</h1>
+        <h1 class="h3 mb-1 d-inline-flex align-items-center gap-2">
+            <?= icon('cable') ?>
+            Wake on LAN
+        </h1>
         <p class="text-body-secondary mb-0">Monitor local devices and send magic packets.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-update-all">Update</button>
-        <a href="<?= e(url('/add.php')) ?>" class="btn btn-primary btn-sm">New device</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" id="btn-update-all">
+            <?= icon('refresh-cw') ?>
+            Update
+        </button>
+        <a href="<?= e(url('/add.php')) ?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+            <?= icon('plus') ?>
+            New device
+        </a>
     </div>
 </div>
 
-<div class="mb-3 small text-body-secondary">
-    Dark mode:
+<div class="mb-3 small text-body-secondary d-flex flex-wrap align-items-center gap-2">
+    <span class="d-inline-flex align-items-center gap-1"><?= icon('moon') ?> Dark mode:</span>
     <?php if (!empty($settings['DarkTheme'])): ?>
         <strong>ON</strong> · <a href="?darkmode=0">OFF</a>
     <?php else: ?>
         <a href="?darkmode=1">ON</a> · <strong>OFF</strong>
     <?php endif; ?>
-    &nbsp;|&nbsp;
-    Verbose ping:
+    <span class="text-body-secondary">|</span>
+    <span class="d-inline-flex align-items-center gap-1"><?= icon('activity') ?> Verbose ping:</span>
     <?php if (!empty($settings['VerbosePing'])): ?>
         <strong>ON</strong> · <a href="?verboseping=0">OFF</a>
     <?php else: ?>
@@ -52,10 +61,10 @@ render_header();
     <table class="table table-hover align-middle" id="computers-table">
         <thead>
             <tr>
-                <th>Hostname</th>
-                <th>IP</th>
-                <th>MAC</th>
-                <th>Status</th>
+                <th><?= icon('monitor') ?> Hostname</th>
+                <th><?= icon('network') ?> IP</th>
+                <th><?= icon('fingerprint') ?> MAC</th>
+                <th><?= icon('radio') ?> Status</th>
                 <th></th>
             </tr>
         </thead>
@@ -72,7 +81,10 @@ render_header();
                     <td><code><?= e($row['mac']) ?></code></td>
                     <td id="status-<?= (int) $row['id'] ?>" class="status-cell">…</td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-secondary btn-wake" data-id="<?= (int) $row['id'] ?>">Wake</button>
+                        <button type="button" class="btn btn-sm btn-secondary btn-wake d-inline-flex align-items-center gap-1" data-id="<?= (int) $row['id'] ?>">
+                            <?= icon('power') ?>
+                            Wake
+                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>

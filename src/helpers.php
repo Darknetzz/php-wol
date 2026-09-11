@@ -188,6 +188,11 @@ function verify_csrf(): void
     }
 }
 
+function icon(string $name, string $class = 'lucide-icon'): string
+{
+    return '<i data-lucide="' . e($name) . '" class="' . e($class) . '" aria-hidden="true"></i>';
+}
+
 function render_header(string $title = 'Wake-on-LAN'): void
 {
     $settings = settings_get();
@@ -205,9 +210,15 @@ function render_header(string $title = 'Wake-on-LAN'): void
 <body>
 <nav class="navbar navbar-expand-lg border-bottom mb-4">
     <div class="container">
-        <a class="navbar-brand fw-semibold" href="<?= e(url('/index.php')) ?>">phpwol</a>
+        <a class="navbar-brand fw-semibold d-inline-flex align-items-center gap-2" href="<?= e(url('/index.php')) ?>">
+            <?= icon('zap') ?>
+            phpwol
+        </a>
         <?php if (auth_required() && auth_check()): ?>
-            <a class="btn btn-sm btn-outline-secondary" href="<?= e(url('/logout.php')) ?>">Log out</a>
+            <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" href="<?= e(url('/logout.php')) ?>">
+                <?= icon('log-out') ?>
+                Log out
+            </a>
         <?php endif; ?>
     </div>
 </nav>
@@ -215,7 +226,10 @@ function render_header(string $title = 'Wake-on-LAN'): void
 <?php
     $flash = flash_get();
     if ($flash): ?>
-        <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
+        <div class="alert alert-<?= e($flash['type']) ?> d-flex align-items-center gap-2">
+            <?= icon($flash['type'] === 'success' ? 'circle-check' : ($flash['type'] === 'danger' ? 'circle-alert' : 'info')) ?>
+            <span><?= e($flash['message']) ?></span>
+        </div>
     <?php endif;
 }
 
@@ -226,6 +240,12 @@ function render_footer(bool $withAppJs = false): void
 <script>window.WOL_BASE = <?= json_encode(base_path(), JSON_UNESCAPED_SLASHES) ?>;</script>
 <script src="<?= e(url('/assets/js/jquery.min.js')) ?>"></script>
 <script src="<?= e(url('/assets/js/bootstrap.bundle.min.js')) ?>"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+</script>
 <?php if ($withAppJs): ?>
 <script src="<?= e(url('/assets/js/app.js')) ?>"></script>
 <?php endif; ?>

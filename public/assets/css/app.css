@@ -15,3 +15,34 @@ body {
 code {
   font-size: 0.875em;
 }
+
+.lucide-icon,
+[data-lucide] {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+}
+
+.navbar-brand .lucide-icon,
+h1 .lucide-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+th .lucide-icon {
+  width: 0.95em;
+  height: 0.95em;
+  margin-right: 0.25rem;
+}
+
+@keyframes lucide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-cell [data-lucide="loader-circle"] {
+  animation: lucide-spin 1s linear infinite;
+}

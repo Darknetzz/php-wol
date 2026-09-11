@@ -7,25 +7,57 @@
     return base + path;
   }
 
+  function refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  function iconMarkup(name) {
+    return '<i data-lucide="' + name + '" class="lucide-icon" aria-hidden="true"></i>';
+  }
+
   function setStatus(id, html) {
     $('#status-' + id).html(html);
+    refreshIcons();
   }
 
   function checkStatus(id) {
-    setStatus(id, '<span class="text-body-secondary">Checking…</span>');
+    setStatus(
+      id,
+      '<span class="text-body-secondary d-inline-flex align-items-center gap-1">' +
+        iconMarkup('loader-circle') +
+        ' Checking…</span>'
+    );
     return $.ajax({
       url: baseUrl('/api/status.php'),
       data: { id: id },
       dataType: 'json'
     }).done(function (data) {
       var color = data.online ? 'success' : 'danger';
-      var html = '<span class="text-' + color + ' fw-semibold">' + $('<div>').text(data.label).html() + '</span>';
+      var name = data.online ? 'circle-check' : 'circle-x';
+      var html =
+        '<span class="text-' + color + ' fw-semibold d-inline-flex align-items-center gap-1">' +
+        iconMarkup(name) +
+        ' ' +
+        $('<div>').text(data.label).html() +
+        '</span>';
       if (data.detail) {
-        html += '<pre class="status-detail text-' + color + ' mb-0 mt-1">' + $('<div>').text(data.detail).html() + '</pre>';
+        html +=
+          '<pre class="status-detail text-' +
+          color +
+          ' mb-0 mt-1">' +
+          $('<div>').text(data.detail).html() +
+          '</pre>';
       }
       setStatus(id, html);
     }).fail(function () {
-      setStatus(id, '<span class="text-warning">Error</span>');
+      setStatus(
+        id,
+        '<span class="text-warning d-inline-flex align-items-center gap-1">' +
+          iconMarkup('triangle-alert') +
+          ' Error</span>'
+      );
     });
   }
 
@@ -37,22 +69,45 @@
 
   function wake(id) {
     var $feedback = $('#wol-feedback');
-    $feedback.html('<div class="alert alert-info mb-0">Sending magic packet…</div>');
+    $feedback.html(
+      '<div class="alert alert-info mb-0 d-flex align-items-center gap-2">' +
+        iconMarkup('send') +
+        '<span>Sending magic packet…</span></div>'
+    );
+    refreshIcons();
     $.ajax({
       url: baseUrl('/api/wake.php'),
       data: { id: id },
       dataType: 'json'
     }).done(function (data) {
       var cls = data.ok ? 'success' : 'danger';
-      $feedback.html('<div class="alert alert-' + cls + ' mb-0">' + $('<div>').text(data.message).html() + '</div>');
+      var name = data.ok ? 'circle-check' : 'circle-alert';
+      $feedback.html(
+        '<div class="alert alert-' +
+          cls +
+          ' mb-0 d-flex align-items-center gap-2">' +
+          iconMarkup(name) +
+          '<span>' +
+          $('<div>').text(data.message).html() +
+          '</span></div>'
+      );
+      refreshIcons();
       checkStatus(id);
     }).fail(function (xhr) {
       var message = (xhr.responseJSON && xhr.responseJSON.message) || 'Wake request failed.';
-      $feedback.html('<div class="alert alert-danger mb-0">' + $('<div>').text(message).html() + '</div>');
+      $feedback.html(
+        '<div class="alert alert-danger mb-0 d-flex align-items-center gap-2">' +
+          iconMarkup('circle-alert') +
+          '<span>' +
+          $('<div>').text(message).html() +
+          '</span></div>'
+      );
+      refreshIcons();
     });
   }
 
   $(function () {
+    refreshIcons();
     updateAll();
     setInterval(updateAll, 10000);
 

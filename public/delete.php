@@ -20,16 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 render_header('Delete device');
 ?>
-<h1 class="h3 mb-3">Delete device</h1>
+<h1 class="h3 mb-3 d-inline-flex align-items-center gap-2"><?= icon('trash-2') ?> Delete device</h1>
 
-<div class="alert alert-danger">
-    Delete <strong><?= e($computer['hostname']) ?></strong> (<?= e($computer['ip']) ?>)?
+<div class="alert alert-danger d-flex align-items-center gap-2">
+    <?= icon('triangle-alert') ?>
+    <span>Delete <strong><?= e($computer['hostname']) ?></strong> (<?= e($computer['ip']) ?>)?</span>
 </div>
 
 <form method="post" class="d-flex gap-2">
     <?= csrf_field() ?>
-    <button type="submit" class="btn btn-danger">Confirm delete</button>
-    <a href="<?= e(url('/edit.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-danger d-inline-flex align-items-center gap-1"><?= icon('trash-2') ?> Confirm delete</button>
+    <a href="<?= e(url('/edit.php?id=' . (int) $computer['id'])) ?>" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1"><?= icon('x') ?> Cancel</a>
 </form>
 <?php
 render_footer();
